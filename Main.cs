@@ -25,6 +25,9 @@ namespace Huuhkaja
         public override Composite PreCombatBuffBehavior { get { return new ActionRunCoroutine(ctx => PreCombatCoroutine()); } }
 
         public static bool hasCADoT = false;
+        public static int starsurgePoolLunar = 0;
+        public static int starsurgePoolSolar = 1;
+        public static int starsurgePoolLunarCA = 2;
 
         #region Behaviors
 
@@ -43,20 +46,32 @@ namespace Huuhkaja
         private static async Task<bool> CombatCoroutine()
         {
 
-            if (StyxWoW.Me.IsCasting || SpellManager.GlobalCooldown || StyxWoW.Me.IsMoving)
+            if (StyxWoW.Me.IsCasting || SpellManager.GlobalCooldown)
                 return true;
 
             // Pulse
             EclipseManager.Pulse();
 
+            if (StyxWoW.Me.IsMoving)
+            {
+                if (Spell.GetCharges("Starsurge") > starsurgePoolLunar && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar && !StyxWoW.Me.HasAura("Lunar Empowerment")
+                     || Spell.GetCharges("Starsurge") > starsurgePoolSolar && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Solar && !StyxWoW.Me.HasAura("Solar Empowerment"))
+                {
+                    return await SpellCast("Starsurge");
+                }
+                if (EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar) await SpellCast("Moonfire");
+                if (EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Solar) await SpellCast("Sunfire");
+            }
+
+            // CDs
+            //if CA is ready soon, pool starsurge to 2
+            starsurgePoolLunar = (Spell.GetSpellCooldown("Celestial Alignment") < TimeSpan.FromSeconds(30)) ? starsurgePoolLunarCA : 0;
+            if (SpellManager.CanCast("Incarnation: Chosen of Elune")) await SpellCast("Incarnation: Chosen of Elune");
+            if (SpellManager.CanCast("Celestial Alignment")) await SpellCast("Celestial Alignment");
+
             // Basic DoTs
             if (!StyxWoW.Me.CurrentTarget.HasAura("Moonfire") && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar) await SpellCast("Moonfire");
-            if (!StyxWoW.Me.CurrentTarget.HasAura("Sunfire") && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar) await SpellCast("Sunfire");
-
-            //check eclipse peak
-            if (StyxWoW.Me.HasAura("Solar Peak")) EclipseManager.lastPeak = EclipseManager.EclipseType.Solar;
-            if (StyxWoW.Me.HasAura("Lunar Peak")) EclipseManager.lastPeak = EclipseManager.EclipseType.Lunar;
-
+            if (!StyxWoW.Me.CurrentTarget.HasAura("Sunfire") && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Solar) await SpellCast("Sunfire");
 
             // Peak DoTs
             if (StyxWoW.Me.HasAura("Lunar Peak"))
@@ -81,8 +96,8 @@ namespace Huuhkaja
             hasCADoT = false;
 
             // Starsurge Logic
-            if (   Spell.GetCharges("Starsurge") >= 1 && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar && !StyxWoW.Me.HasAura("Lunar Empowerment")
-                || Spell.GetCharges("Starsurge") >= 2 && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Solar && !StyxWoW.Me.HasAura("Solar Empowerment"))
+            if (   Spell.GetCharges("Starsurge") > starsurgePoolLunar && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar && !StyxWoW.Me.HasAura("Lunar Empowerment")
+                || Spell.GetCharges("Starsurge") > starsurgePoolSolar && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Solar && !StyxWoW.Me.HasAura("Solar Empowerment"))
             {
                 return await SpellCast("Starsurge");
             }

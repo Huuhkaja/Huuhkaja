@@ -33,5 +33,14 @@ namespace Huuhkaja.Helpers
             return 0;
         }
 
+        public static TimeSpan GetSpellCooldown(string spell)
+        {
+            SpellFindResults sfr;
+            if (SpellManager.FindSpell(spell, out sfr))
+                return (sfr.Override ?? sfr.Original).CooldownTimeLeft;
+
+            return TimeSpan.FromSeconds(999);
+        }
+
     }
 }

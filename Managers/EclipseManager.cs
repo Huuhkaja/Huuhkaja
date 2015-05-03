@@ -36,6 +36,10 @@ namespace Huuhkaja.Managers
         {
             // Check for Euphoria
             timePerEnergy = (TalentManager.HasTalent(6,0)) ? 40 : 80;
+
+            //check eclipse peak
+            if (StyxWoW.Me.HasAura("Solar Peak")) EclipseManager.lastPeak = EclipseManager.EclipseType.Solar;
+            if (StyxWoW.Me.HasAura("Lunar Peak")) EclipseManager.lastPeak = EclipseManager.EclipseType.Lunar;
         }
 
         public static EclipseType AciveEclipse()
