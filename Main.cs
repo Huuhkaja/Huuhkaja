@@ -21,12 +21,10 @@ namespace Huuhkaja
         public override WoWClass Class { get { return StyxWoW.Me.Specialization == WoWSpec.DruidBalance ? WoWClass.Druid : WoWClass.None; } }
         public override string Name { get { return "Huuhkaja - Balance Druid 0.1"; } }
 
-
         public override Composite CombatBehavior { get { return new ActionRunCoroutine(ctx => CombatCoroutine()); } }
         public override Composite PreCombatBuffBehavior { get { return new ActionRunCoroutine(ctx => PreCombatCoroutine()); } }
 
         public static bool hasCADoT = false;
- 
 
         #region Behaviors
 
@@ -47,6 +45,9 @@ namespace Huuhkaja
 
             if (StyxWoW.Me.IsCasting || SpellManager.GlobalCooldown || StyxWoW.Me.IsMoving)
                 return true;
+
+            // Pulse
+            EclipseManager.Pulse();
 
             // Basic DoTs
             if (!StyxWoW.Me.CurrentTarget.HasAura("Moonfire") && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar) await SpellCast("Moonfire");
@@ -87,11 +88,6 @@ namespace Huuhkaja
             }
 
             // Filler: Starfire / Wrath
-            Logging.WriteDiagnostic("To 0: "+ EclipseManager.TimeToZeroEnergy());
-            Logging.WriteDiagnostic("CastTime Starfire: " + SpellManager.Spells["Starfire"].CastTime );
-            Logging.WriteDiagnostic("CastTime Warth: " + SpellManager.Spells["Wrath"].CastTime);
-            Logging.WriteDiagnostic(""+(EclipseManager.TimeToZeroEnergy() > SpellManager.Spells["Starfire"].CastTime));
-
             if ((EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar && EclipseManager.TimeToZeroEnergy() > SpellManager.Spells["Starfire"].CastTime)
                 || (EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Solar && EclipseManager.TimeToZeroEnergy() < SpellManager.Spells["Wrath"].CastTime))
             {
@@ -120,7 +116,7 @@ namespace Huuhkaja
                 return false;
 
 
-            Logging.WriteDiagnostic("[Huuhkaja] Cast {0} on {1}", spell, target.SafeName);
+            //Logging.WriteDiagnostic("[Huuhkaja] Cast {0} on {1}", spell, target.SafeName);
 
 
             // Wait for lag

@@ -21,8 +21,7 @@ namespace Huuhkaja.Managers
         //  - 4s Peak
         //  - 80ms per Energy
 
-        const int timePerEnergy = 40;
-        const int cycleTime = 20000;
+        public static int timePerEnergy = 40;
 
         public static EclipseType lastPeak { set; get; }
 
@@ -32,6 +31,12 @@ namespace Huuhkaja.Managers
             Solar,
             Lunar
         };
+
+        public static void Pulse()
+        {
+            // Check for Euphoria
+            timePerEnergy = (TalentManager.HasTalent(6,0)) ? 40 : 80;
+        }
 
         public static EclipseType AciveEclipse()
         {
@@ -44,7 +49,6 @@ namespace Huuhkaja.Managers
         {
             if (lastPeak == EclipseType.Lunar) return EclipseType.Solar;
             if (lastPeak == EclipseType.Solar) return EclipseType.Lunar;
-
             return EclipseType.Lunar;
         }
 
