@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using CommonBehaviors.Actions;
 using Styx;
 using Styx.Common;
@@ -8,15 +10,18 @@ using Styx.CommonBot.Coroutines;
 using Styx.CommonBot.Routines;
 using Styx.TreeSharp;
 using Styx.WoWInternals.WoWObjects;
+using Styx.WoWInternals;
 
 
 using Huuhkaja.Managers;
 using Huuhkaja.Helpers;
+using Huuhkaja.GUI;
 
+using HKM = Huuhkaja.Managers.HotkeyManagers;
 
 namespace Huuhkaja
 {
-    public class Huuhkaja : CombatRoutine
+    public class Main : CombatRoutine
     {
         public override WoWClass Class { get { return StyxWoW.Me.Specialization == WoWSpec.DruidBalance ? WoWClass.Druid : WoWClass.None; } }
         public override string Name { get { return "Huuhkaja - Balance Druid 0.1"; } }
@@ -27,7 +32,42 @@ namespace Huuhkaja
         public static bool hasCADoT = false;
         public static int starsurgePoolLunar = 0;
         public static int starsurgePoolSolar = 1;
-        public static int starsurgePoolLunarCA = 2;
+
+        public static int AddCount
+        {
+            get
+            {
+                return ObjectManager.GetObjectsOfTypeFast<WoWUnit>().Count(p => p.IsAlive
+                    && p.Distance <= 35
+                    && p.Attackable);
+            }
+        }
+
+        public static List<WoWUnit> Enemys
+        {
+            get{
+                var enemys = (ObjectManager.GetObjectsOfTypeFast<WoWUnit>()
+                     .FindAll(e => e.IsAlive && e.Distance <= 35 && e.Attackable));
+                return enemys;
+            }
+
+        }
+
+        public override bool WantButton { get { return true; } }
+        public override void OnButtonPress()
+        {
+            new ConfigurationForm().ShowDialog();
+        }
+
+        public override void Initialize()
+        {
+            HKM.registerHotKeys();
+        }
+
+        public override void ShutDown()
+        {
+            HKM.removeHotkeys();
+        }
 
         #region Behaviors
 
@@ -41,7 +81,6 @@ namespace Huuhkaja
             
             return false;
         }
-
 
         private static async Task<bool> CombatCoroutine()
         {
@@ -65,13 +104,31 @@ namespace Huuhkaja
 
             // CDs
             //if CA is ready soon, pool starsurge to 2
-            starsurgePoolLunar = (Spell.GetSpellCooldown("Celestial Alignment") < TimeSpan.FromSeconds(30)) ? starsurgePoolLunarCA : 0;
+            starsurgePoolLunar = (Spell.GetSpellCooldown("Celestial Alignment") < TimeSpan.FromSeconds(30)) ? HuuhkajaSettings.Instance.poolStarsurgesCA : 0;
             if (SpellManager.CanCast("Incarnation: Chosen of Elune")) await SpellCast("Incarnation: Chosen of Elune");
             if (SpellManager.CanCast("Celestial Alignment")) await SpellCast("Celestial Alignment");
 
             // Basic DoTs
             if (!StyxWoW.Me.CurrentTarget.HasAura("Moonfire") && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar) await SpellCast("Moonfire");
             if (!StyxWoW.Me.CurrentTarget.HasAura("Sunfire") && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Solar) await SpellCast("Sunfire");
+
+            //AOE DoTs
+            if (HuuhkajaSettings.Instance.AOE && AddCount >= 2)
+            {
+                foreach (WoWUnit enemy in Enemys) 
+                {
+                    if (!enemy.HasAura("Moonfire") && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar && StyxWoW.Me.IsSafelyFacing(enemy)){
+                        await SpellCast("Moonfire", enemy);
+                    }
+                    if (!enemy.HasAura("Sunfire") && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Solar && StyxWoW.Me.IsSafelyFacing(enemy))
+                    {
+                        await SpellCast("Sunfire", enemy);
+                    }
+                }
+            }
+
+            //AOE Starfall
+            if (HuuhkajaSettings.Instance.AOE && AddCount >= HuuhkajaSettings.Instance.starfallTargets && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar && !StyxWoW.Me.HasAura("Starfall")) await SpellCast("Starfall");
 
             // Peak DoTs
             if (StyxWoW.Me.HasAura("Lunar Peak"))
@@ -117,7 +174,6 @@ namespace Huuhkaja
 
         #endregion
 
-
         #region Casting Tasks
         private static async Task<bool> SpellCast(string spell, WoWUnit target)
         {
@@ -148,7 +204,6 @@ namespace Huuhkaja
             return await SpellCast(spell, StyxWoW.Me.CurrentTarget);
         }
         #endregion
-
 
     }
 }

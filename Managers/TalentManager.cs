@@ -10,7 +10,6 @@ using Styx.CommonBot;
 using Styx.Common.Helpers;
 using Styx.CommonBot.Routines;
 using Styx.CommonBot.CharacterManagement;
-using Styx.WoWInternals;
 
 namespace Huuhkaja.Managers
 {
