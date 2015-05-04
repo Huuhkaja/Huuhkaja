@@ -1,5 +1,4 @@
 bin
 obj
-Properties
-/*.csproj
+*.csproj
 /*.user
