@@ -10,10 +10,21 @@ namespace Huuhkaja.Helpers
 {
     class Spell
     {
-        public static int GetCastTime(WoWSpell spell)
+        public static double GetCastTime(WoWSpell spell)
         {
-            int time = Lua.GetReturnVal<int>("return GetSpellCharges(" + spell.Id.ToString() + ")", 0);
+            double time = Lua.GetReturnVal<double>(string.Format("return GetSpellInfo({0})", spell.Id), 3);  
             return time;
+        }
+
+        public static double GetCastTime(string name)
+        {
+            SpellFindResults sfr;
+            if (SpellManager.FindSpell(name, out sfr))
+            {
+                WoWSpell spell = sfr.Override ?? sfr.Original;
+                return GetCastTime(spell);
+            }
+            return 0;
         }
 
         public static int GetCharges(WoWSpell spell)

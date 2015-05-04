@@ -160,8 +160,8 @@ namespace Huuhkaja
             }
 
             // Filler: Starfire / Wrath
-            if ((EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar && EclipseManager.TimeToZeroEnergy() > SpellManager.Spells["Starfire"].CastTime)
-                || (EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Solar && EclipseManager.TimeToZeroEnergy() < SpellManager.Spells["Wrath"].CastTime))
+            if ((EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar && EclipseManager.TimeToZeroEnergy() > Spell.GetCastTime("Starfire"))
+                || (EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Solar && EclipseManager.TimeToZeroEnergy() < Spell.GetCastTime("Wrath")))
             {
                 return await SpellCast("Starfire");
             }
