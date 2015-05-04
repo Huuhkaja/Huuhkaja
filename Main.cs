@@ -105,8 +105,8 @@ namespace Huuhkaja
             // CDs
             //if CA is ready soon, pool starsurge to 2
             starsurgePoolLunar = (Spell.GetSpellCooldown("Celestial Alignment") < TimeSpan.FromSeconds(30)) ? HuuhkajaSettings.Instance.poolStarsurgesCA : 0;
-            if (SpellManager.CanCast("Incarnation: Chosen of Elune")) await SpellCast("Incarnation: Chosen of Elune");
-            if (SpellManager.CanCast("Celestial Alignment")) await SpellCast("Celestial Alignment");
+            if (HuuhkajaSettings.Instance.useIncarnation && SpellManager.CanCast("Incarnation: Chosen of Elune")) await SpellCast("Incarnation: Chosen of Elune");
+            if (HuuhkajaSettings.Instance.useCA && SpellManager.CanCast("Celestial Alignment")) await SpellCast("Celestial Alignment");
 
             // Basic DoTs
             if (!StyxWoW.Me.CurrentTarget.HasAura("Moonfire") && EclipseManager.AciveEclipse() == EclipseManager.EclipseType.Lunar) await SpellCast("Moonfire");

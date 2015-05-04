@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<HuuhkajaSettings>
+  <AOE>True</AOE>
+  <useNaturesVigil>False</useNaturesVigil>
+  <starfallTargets>2</starfallTargets>
+  <useCA>True</useCA>
+  <poolStarsurgesCA>2</poolStarsurgesCA>
+  <useIncarnation>True</useIncarnation>
+  <aoeKey1>Alt</aoeKey1>
+  <aoeKey2>O</aoeKey2>
+</HuuhkajaSettings>
